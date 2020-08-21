@@ -106,7 +106,7 @@ namespace StackExchange.Profiling
                 // Stop (and record)
                 await mp.StopAsync().ConfigureAwait(false);
 
-#if NETCOREAPP3_0 // TODO: Evaluate if this works after http/2 local support in preview 7, maybe backport to netcoreapp2.2
+#if NETCOREAPP3_0 // TODO: Evaluate if this works after http/2 local support in preview 7, maybe backport to netcoreapp2.1
                 if (appendServerTimingHeader && mp != null)
                 {
                     context.Response.AppendTrailer("Server-Timing", mp.GetServerTimingHeader());
@@ -154,7 +154,13 @@ namespace StackExchange.Profiling
                 {
                     profiler.Name = routeData.Values["page"].ToString();
                 }
-                else
+#if NETCOREAPP3_0
+                else if (context.GetEndpoint() is Endpoint endPoint && endPoint.DisplayName.HasValue())
+                {
+                    profiler.Name = endPoint.DisplayName;
+                }    
+#endif
+               else
                 {
                     profiler.Name = url;
                     if (profiler.Name.Length > 50)
